@@ -13,6 +13,7 @@ def init_mysql():
         cur.execute(create_db)
         cur.close()
         conn.close()
+
         Base.metadata.create_all(engine)
     except Exception as e:
         raise e
@@ -49,8 +50,8 @@ class User(Base):
 
     # articles = relationship('Article', primaryjoin='users.c.id==articles.c.author_id')
     # followers = relationship('Follower', primaryjoin='users.c.id==followers.c.following_id')
-    articles = relationship('Article', primaryjoin='User.id==Article.author_id')
-    followers = relationship('Follower', primaryjoin='User.id==Follower.following_id')
+    # articles = relationship('Article', primaryjoin='User.id==Article.author_id')
+    # followers = relationship('Follower', primaryjoin='User.id==Follower.following_id')
 
     __table_args__ = (
         UniqueConstraint('id', 'name', name='uix_id_name'),
@@ -74,7 +75,8 @@ class Article(Base):
     like_count = Column(Integer)
     money_count = Column(Integer)
     url = Column(String(255))
-    author_name = Column(String(100), ForeignKey('users.name'))
+    # author_name = Column(String(100), ForeignKey('users.name'))
+    author_name = Column(String(100))
     author_id = Column(String(100), ForeignKey('users.id'))
 
     def __repr__(self):
@@ -82,6 +84,7 @@ class Article(Base):
 
     def __init__(self, id, title, summary, url, created_at, read_count, comment_count, like_count, money_count,
                  author_name):
+        super(Article, self).__init__()
         self.id = id
         self.title = title
         self.summary = summary
@@ -99,7 +102,7 @@ class Follower(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)
     following_id = Column(String(100), ForeignKey('users.id'))
-    following_name = Column(String(100), ForeignKey('users.name'))
+    following_name = Column(String(100))
     follower_id = Column(String(100))
     follower_name = Column(String(100))
 

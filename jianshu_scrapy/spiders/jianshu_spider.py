@@ -65,9 +65,11 @@ class jianshu_spider(Spider):
                     logging.info('<JS><parsingitem> author_id: %s' % author_id)
                     yield parsingItem
 
+                if self.recommend_page_index == 1:
+                    self.session = get_db_session()
                 self.recommend_page_index += 1
                 url = self.recommend_base_url % self.recommend_page_index
-                yield Request(url, headers=self.headers, callback=self.parse)
+                yield Request(url, headers=self.headers, callback=self.parse, dont_filter=True)
 
                 request = self.start_request_author()
                 if request:
