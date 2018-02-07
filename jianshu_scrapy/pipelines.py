@@ -56,9 +56,9 @@ class FilterAuthorItemPipeline(object):
                     user.note = item['note']
                     user.url = item['url']
                     user.word_count = item['word_count']
-                    if user.follower_count:
+                    if not user.follower_count:
                         user.is_follower_complete = 2
-                    if user.article_count:
+                    if not user.article_count:
                         user.is_article_complete = 2
                     self.session.add(user)
                     self.session.flush()
@@ -92,13 +92,19 @@ class FilterArticleItemPipeline(object):
                 article = self.session.query(Article).filter(Article.id == id).first()
                 if article is None:
                     article = Article(item['id'], item['title'], item['summary'], item['url'], item['created_at'],
-                                      item['read_count'], item['comment_count'], item['like_count'], item['money_count'],
+                                      item['read_count'], item['comment_count'], item['like_count'],
+                                      item['money_count'],
                                       item['author_name'])
                     article.author_id = item['author_id']
 
-                    self.session.add(article)
-                    self.session.flush()
-                    self.session.commit()
+                    user = self.session.query(User).filter(User.id == article.author_id).first()
+                    if user:
+                        if user.name != article.author_name:
+                            user.name = article.author_name
+                            self.session.commit()
+                        self.session.add(article)
+                        self.session.flush()
+                        self.session.commit()
             except Exception as error:
                 logging.error('<JS><Article_Commit>commit author error:\n' + repr(error))
                 logging.error(traceback.format_exc())
@@ -124,9 +130,15 @@ class FilterFollowerItemPipeline(object):
                 if follower is None:
                     follower = Follower(id, item['follower_name'], item['following_name'])
                     follower.following_id = item['following_id']
-                    self.session.add(follower)
-                    self.session.flush()
-                    self.session.commit()
+
+                    user = self.session.query(User).filter(User.id == follower.following_id).first()
+                    if user:
+                        if user.name != follower.following_name:
+                            user.name = follower.following_name
+                            self.session.commit()
+                        self.session.add(follower)
+                        self.session.flush()
+                        self.session.commit()
             except Exception as error:
                 logging.error('<JS><Follower_Commit>commit author error:\n' + repr(error))
                 logging.error(traceback.format_exc())
